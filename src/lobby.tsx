@@ -1,67 +1,79 @@
 import * as React from 'react';
-import io from 'socket.io-client';
-import config from './config';
+import ServicesStore from './stores/services.store';
+import { Redirect } from 'react-router-dom';
+import { inject, observer } from 'mobx-react';
+import OnlineCountComponent from './components/online.count.component';
 
-interface ICard {
-	value: number;
-	suit: string;
+interface IProps { }
+
+interface Injected extends IProps {
+	services: ServicesStore;
 }
-interface IProps { };
 interface IState {
 	tableId: string | null;
-	onlineCount: number;
-};
-const socket = io(config.localServer);
+}
 
+@inject('services')
+@observer
 export default class Lobby extends React.Component<IProps, IState> {
+
+	public inputTableId: HTMLInputElement | null;
 
 	public constructor(props: IProps) {
 		super(props);
 		this.state = {
-			tableId: null,
-			onlineCount: 0
-		}
+			tableId: null
+		};
 		this.newTable = this.newTable.bind(this);
+		this.joinTable = this.joinTable.bind(this);
 	}
 
-	public componentDidMount() {
+	public get injected(): Injected {
+		return this.props as Injected;
+	}
+
+	public componentDidMount(): void {
+		const { socket } = this.injected.services;
 		socket.on('newTable', (tableId: string) => {
 			this.setState({ tableId });
 		});
-		socket.on('onlineCount', (onlineCount: number) => {
-			this.setState({ onlineCount });
+		socket.on('joinedTable', (tableId: string) => {
+			this.setState({ tableId });
 		});
 	}
 
-	public newTable() {
+	public newTable(): void {
+		const { socket } = this.injected.services;
 		socket.emit('newTable');
 	}
 
-	public render(): React.ReactElement<any> {
-		const { onlineCount } = this.state;
-		const count = <h2>{onlineCount} are online</h2>
+	public joinTable(): void {
+		const { socket } = this.injected.services;
+		socket.emit('joinTable', this.inputTableId!.value);
+	}
 
+	public render(): React.ReactElement<any> {
 		if (this.state.tableId) {
-			return (
-				<>
-					{count}
-					<h1>Table Id: {this.state.tableId}</h1>
-				</>
-			)
+			const redirect = {
+				pathname: `table/${this.state.tableId}`,
+				state: { roomExists: true }
+			};
+			return <Redirect to={redirect} />;
 		}
 		return (
 			<section>
 				<h1>Welcome to PookerKit</h1>
-				{count}
+				<OnlineCountComponent />
 				<div>
 					<button onClick={this.newTable}>Create new table</button>
 				</div>
 				<div>
 					<h3>Join existing table</h3>
 					<label htmlFor="tableId">Table id:</label>
-					<input type="text"/>
+					<input type="text" ref={(ref) => this.inputTableId = ref} />
+					<button onClick={this.joinTable}>Join</button>
 				</div>
 			</section>
-		)
+		);
 	}
 }

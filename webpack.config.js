@@ -24,6 +24,16 @@ module.exports = {
 			{ test: /\.tsx?$/, loader: "awesome-typescript-loader" },
 			{ test: /\.js$/, loader: "source-map-loader", enforce: 'pre' },
 			{
+                test: /\.tsx?$/,
+                enforce: 'pre',
+                use: [
+                    {
+                        loader: 'tslint-loader',
+                        options: { /* Loader options go here */ }
+                    }
+                ]
+            },
+			{
 				test: /\.(png|jpg|gif|svg)$/,
 				use: [
 					{
@@ -38,11 +48,7 @@ module.exports = {
 		port: 8080,
 		content: [path.join(__dirname, 'dist')],
 		add: (app, middleware, options) => {
-			const historyOptions = {
-				// rewrites: [
-				// 	{ from: /table\/.*/, to: '/index.html'}
-				//   ]
-			};
+			const historyOptions = {};
 			app.use(convert(history(historyOptions)));
 		}
 	}
