@@ -9,6 +9,7 @@ export default class MetaStore {
 
 	public constructor(services: ServicesStore) {
 		this.services = services;
+		this.startListening();
 	}
 
 	public startListening(): void {
