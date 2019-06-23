@@ -34,16 +34,10 @@ module.exports = {
 			}
 		],
 	},
-	serve: {
-		port: 8080,
-		content: [path.join(__dirname, 'dist')],
-		add: (app, middleware, options) => {
-			const historyOptions = {
-				// rewrites: [
-				// 	{ from: /table\/.*/, to: '/index.html'}
-				//   ]
-			};
-			app.use(convert(history(historyOptions)));
-		}
-	}
+	devServer: {
+        contentBase: path.join(__dirname, 'dist'),
+        port: 8080,
+        hot: true,
+        watchOptions: { ignored: /node_modules/ }
+    }
 }
